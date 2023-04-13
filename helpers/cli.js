@@ -2,9 +2,10 @@ module.exports = cli = {
     options: {
         type: 'list',
         name: 'userChoice',
-        message: 'Choose one:',
+        message: 'Select option:',
         choices: ['View all departments', 'View all roles', 'View all employees',
-                  'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
+                  'Add a department', 'Add a role', 'Add an employee',
+                  'Update an employee role', 'EXIT']
     },
     logo: `
     --------------------------------------------------------------------
