@@ -33,7 +33,12 @@ const init = () => {
                 break;
     
             case cli.options.choices[1]: // View all roles
-                db.query('SELECT * FROM roles', (err, results) => {
+            // I am presented with the job title, role id, the department 
+            // that role belongs to, and the salary for that role
+                db.query(`
+                    SELECT roles.id, roles.title, department.department_name, roles.salary FROM roles 
+                    INNER JOIN department 
+                    ON roles.department_id = department.id`, (err, results) => {
                     convertToTable(results);
                 });
                 break;
@@ -42,7 +47,14 @@ const init = () => {
             // I am presented with a formatted table showing employee data, including employee ids,
             //  first names, last names, job titles, departments, salaries,
             //  and managers that the employees 
-                db.query('SELECT * FROM employee', (err, results) => {
+                db.query(`
+                SELECT
+                    employee.id, employee.first_name, employee.last_name, roles.title, department.department_name, roles.salary, 
+                    CONCAT(manager.first_name, " ", manager.last_name) AS "Manager"
+                FROM employee AS employee
+                INNER JOIN employee AS manager ON employee.manager_id = manager.id
+                INNER JOIN roles ON employee.role_id = roles.id
+                INNER JOIN department ON roles.department_id = department.id`, (err, results) => {
                     convertToTable(results);
                 });
                 break;
