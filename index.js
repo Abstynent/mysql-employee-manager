@@ -25,7 +25,7 @@ const init = () => {
                 viewAllRoles();
                 break;
     
-            case cli.options.choices[2]: 
+            case cli.options.choices[2]: // View All Employees
                 viewAllEmployees();
                 break;
      
@@ -45,7 +45,7 @@ const init = () => {
                     updateEmployeeRole();
                 break;         
             
-            case cli.options.choices[7]:
+            case cli.options.choices[7]: // Exit
                 db.end();
         }
 
