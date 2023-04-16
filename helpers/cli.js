@@ -1,3 +1,5 @@
+const getDepartmentList = require('../helpers/sqlQuery.js');
+
 module.exports = cli = {
     options: {
         type: 'list',
@@ -15,5 +17,29 @@ module.exports = cli = {
     |_____|_|_|_|  _|_|___|_  |___|___|  |_|_|_|__,|_|_|__,|_  |___|_|  
                 |_|       |___|                            |___|        
                
-    --------------------------------------------------------------------`
-}
+    --------------------------------------------------------------------`,
+
+    addDepartment: {
+        type: 'input',
+        name: 'department_name',
+        message: 'Enter new department name:'
+    },
+    addRole: [
+        {
+            type: 'input',
+            name: 'title',
+            message: 'Enter new role title:'
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: 'Enter salary for the new role:'
+        },
+        {
+            type: 'list',
+            name: 'department',
+            message: 'Select a department:',
+            choices: getDepartmentList
+        }
+    ]
+};

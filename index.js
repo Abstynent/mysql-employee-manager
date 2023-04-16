@@ -1,25 +1,13 @@
 const { prompt } = require('inquirer');
-const mysql = require('mysql2');
+// const mysql = require('mysql2');
 const cli = require('./helpers/cli.js')
 const cTable = require('console.table');
-// const db = require('./db/connection.js');
-
-const db = mysql.createConnection(
-    {
-        host: '127.0.0.1', 
-        user: 'root',
-        password: '152413',
-        database: 'employee_db'
-      },
-);
-
-db.connect((err) => {
-    err ? console.error(err) : init();
-});
+const db = require('./db/connection.js');
+const getDepartmentList = require('./helpers/sqlQuery.js');
 
 const convertToTable = (data) => {
     const table = cTable.getTable(data);
-    console.table(table);
+    console.table('\n' + table);
                         init();
 }
 
@@ -39,7 +27,7 @@ const init = () => {
                     SELECT roles.id, roles.title, department.department_name, roles.salary FROM roles 
                     INNER JOIN department 
                     ON roles.department_id = department.id`, (err, results) => {
-                    convertToTable(results);
+                        convertToTable(results);
                 });
                 break;
     
@@ -52,7 +40,7 @@ const init = () => {
                     employee.id, employee.first_name, employee.last_name, roles.title, department.department_name, roles.salary, 
                     CONCAT(manager.first_name, " ", manager.last_name) AS "Manager"
                 FROM employee AS employee
-                INNER JOIN employee AS manager ON employee.manager_id = manager.id
+                LEFT JOIN employee AS manager ON employee.manager_id = manager.id
                 INNER JOIN roles ON employee.role_id = roles.id
                 INNER JOIN department ON roles.department_id = department.id`, (err, results) => {
                     convertToTable(results);
@@ -62,11 +50,25 @@ const init = () => {
             case cli.options.choices[3]: // Add a department
             // I am prompted to enter the name of the 
             // department and that department is added to the database
+                prompt(cli.addDepartment).then((data => {
+                    db.query(`INSERT INTO department (department_name) VALUES ("${data.department_name}")`, (err, results) => {
+                        if(err) {
+                            // console.error(err);
+                            console.error(`\n\n❌ Unable to add new department. Entered name cannot be empty or duplicated.`);
+                        } else {
+                            console.log(`✅ New department ${data.department_name} added!`)
+                        }
+                    })
+                init();
+            }))
                 break;  
     
             case cli.options.choices[4]: // Add a role
             // I am prompted to enter the name, salary, 
             // and department for the role and that role is added to the database
+                prompt(cli.addRole).then((data) => {
+                    console.log(data);
+                })
                 break;
     
             case cli.options.choices[5]: // Add an employee
@@ -87,3 +89,6 @@ const init = () => {
 }
 
 console.log(cli.logo);
+db.connect((err) => {
+    err ? console.error(err) : init();
+});
