@@ -1,5 +1,3 @@
-const getDepartmentList = require('../helpers/sqlQuery.js');
-
 module.exports = cli = {
     options: {
         type: 'list',
@@ -18,28 +16,12 @@ module.exports = cli = {
                 |_|       |___|                            |___|        
                
     --------------------------------------------------------------------`,
-
     addDepartment: {
         type: 'input',
         name: 'department_name',
-        message: 'Enter new department name:'
-    },
-    addRole: [
-        {
-            type: 'input',
-            name: 'title',
-            message: 'Enter new role title:'
-        },
-        {
-            type: 'input',
-            name: 'salary',
-            message: 'Enter salary for the new role:'
-        },
-        {
-            type: 'list',
-            name: 'department',
-            message: 'Select a department:',
-            choices: getDepartmentList
+        message: 'Enter new department name:',
+        validate: async () => {
+            return input.length >= 3 ? true : 'Incorrect input. Must be at least 3 characters.';
         }
-    ]
+    }
 };
