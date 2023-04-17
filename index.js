@@ -7,7 +7,8 @@ const clear = require('clear');
 const clearThenLogo = () => {
     clear();
     console.log(cli.logo);
-}
+};
+
 const convertToTable = (data) => {
     clearThenLogo();
     const table = cTable.getTable(data);
@@ -15,71 +16,85 @@ const convertToTable = (data) => {
     init();
 };
 
-clearThenLogo();
-
 db.connect((err) => {
     err ? console.error(err) : init();
 });
 
+clearThenLogo();
+
 const init = () => {
     prompt(cli.options).then((data) => {
         switch(data.userChoice) {
-            case cli.options.choices[0]: // View all departments
-                viewAllDepartments();
-                break;
+            case 'viewOption':      viewMenu();    break;
+            case 'addOption':       addMenu();     break;
+            case 'updateOption':    updateMenu();  break;
+            case 'deleteOption':    deleteMenu();  break;
+            case 'exit':            exitFunc();    break;
+        };
+    });
+};
 
-            case cli.options.choices[1]: // View all roles
-                viewAllRoles();
-                break;
-    
-            case cli.options.choices[2]: // View All Employees
-                viewAllEmployees();
-                break;
-     
-            case cli.options.choices[3]: // Add a department
-                addNewDepartment();
-                break;  
-    
-            case cli.options.choices[4]: // Add a role
-                addNewRole();
-                break;
-    
-            case cli.options.choices[5]: // Add an employee
-                    addNewEmployee();
-                break;
-    
-            case cli.options.choices[6]: // Update an employee role
-                    updateEmployeeRole();
-                break;
+// VIEW MENU
+// ##########################################################################################################
+const viewMenu = () => {
+    prompt(cli.viewOptions).then((selection) => {
+        switch(selection.selectedViewOption) {
+            case 'viewAllDepartments':        viewAllDepartments();         break;
+            case 'viewAllRoles':              viewAllRoles();               break;
+            case 'viewAllEmployees':          viewAllEmployees();           break;
+            case 'viewEmployeesByDepartment': viewEmployeesByDepartment();  break;
+            case 'viewEmployeesByManager':    viewEmployeesByManager();     break;
+            case 'viewDepartmentBudged':      viewDepartmentBudget();       break;
+            case 'goBack':                    init();                       break;
+        };
+    });
+};
 
-            case cli.options.choices[7]: // Update an employee manager
-                updateEmployeeManager();
-            break;    
+// ADD MENU
+// ##########################################################################################################
+const addMenu = () => {
+    prompt(cli.addOptions).then((selection) => {
+        switch(selection.selectedAddOption) {
+            case 'addDepartment':   addNewDepartment();    break;
+            case 'addRole':         addNewRole();          break;
+            case 'addEmployee':     addNewEmployee();      break;
+            case 'goBack':          init();                break;
+        };
+    });
+};
 
-            case cli.options.choices[8]: // View employees by manager
-                viewEmployeesByManager();
-            break;  
-
-            case cli.options.choices[9]: // View employees by department
-                viewEmployeesByDepartment();
-            break; 
-
-            case cli.options.choices[10]: // Delete -> next prompt
-                deleteFromDB();
-            break; 
-
-            case cli.options.choices[11]: // View utilized budget
-                viewUtilizedBudget();
-            break; 
-
-            case cli.options.choices[12]: // Exit
-                clear();
-                db.end();
-                console.log(`Goodbye! 👋`)
+// UPDATE MENU
+// ##########################################################################################################
+const updateMenu = () => {
+    prompt(cli.updateOptions).then((selection) => {
+        switch(selection.selectedUpdateOption) {
+            case 'updateEmployeeRole':    updateEmployeeRole();    break;
+            case 'updateEmployeeManager': updateEmployeeManager(); break;
+            case 'goBack':                init();                  break;
         }
-
     })
 };
+// DELETE MENU
+// ##########################################################################################################
+const deleteMenu = () => {
+    prompt(cli.deleteOptions).then((selection) => {
+        switch(selection.selectedDeleteOption) {
+            case 'deleteDepartment':    deleteDepartment();     break;
+            case 'deleteRole':          deleteRole();           break;
+            case 'deleteEmployee':      deleteEmployee();       break;
+            case 'goBack':              init();                 break;
+        }
+    })
+
+};
+// Exit function
+// ##########################################################################################################
+const exitFunc = () => {
+    clear();
+    db.end();
+    console.log('Goodbye! 👋');
+};
+
 
 // VIEW ALL DEPARTMENTS
 // ##########################################################################################################
@@ -118,9 +133,9 @@ const viewAllEmployees = () => {
                     LEFT JOIN employee AS manager ON employee.manager_id = manager.id
                     INNER JOIN roles ON employee.role_id = roles.id
                     INNER JOIN department ON roles.department_id = department.id`, (err, results) => {
-
                     convertToTable(results);
-                });
+                }
+                );
 };
 
 // ADD NEW DEPARTMENT
@@ -157,7 +172,7 @@ const addNewDepartment = () => {
 // I am prompted to enter the name, salary, 
 // and department for the role and that role is added to the database
 const addNewRole = () => {
-    db.query(`SELECT * FROM department`, (err, results) => {
+    db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, results) => {
         if(err) console.error(err);
 
         results = results.map((department) => {
@@ -212,7 +227,7 @@ const addNewRole = () => {
 // I am prompted to enter the employee’s first name,
 //  last name, role, and manager, and that employee is added to the database
 const addNewEmployee = () => {
-    db.query('SELECT * FROM roles', (err, rolesResult) => {
+    db.query('SELECT * FROM roles ORDER BY title ASC', (err, rolesResult) => {
         if(err) console.error(err);
 
         rolesResult = rolesResult.map((roles) => {
@@ -222,10 +237,7 @@ const addNewEmployee = () => {
             }
         }); // end of roles.map
         
-        db.query(`SELECT first_name, last_name, id 
-              FROM employee
-              WHERE 
-              (id IN (SELECT manager_id FROM employee))`,
+        db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`,
             (err, managerResults) => {
                 if(err) console.error(err);
                 managerResults = managerResults.map((manager) => {
@@ -234,7 +246,7 @@ const addNewEmployee = () => {
                         value: manager.id,
                     };
                 })
-                managerResults.push(
+                managerResults.unshift(
                     {
                         name: '⚪️ No manager',
                         value: null,
@@ -347,13 +359,73 @@ const updateEmployeeRole = () => {
 // UPDATE AN EMPLOYEE MANAGER
 // ##########################################################################################################
 const updateEmployeeManager = () => {
+    db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
+        if(err) console.error(err);
+
+        employeeResults = employeeResults.map((employee) => {
+            return {
+                name: employee.first_name + ' ' + employee.last_name,
+                value: employee.id
+            }
+        }); // end of map
+        prompt([
+            {
+                type: 'list',
+                name: 'selectedEmployee',
+                message: 'Select an employee to update:',
+                choices: employeeResults
+            },
+            {
+                type: 'list',
+                name: 'selectedManager',
+                message: 'Select a manager that this employee has to report to:',
+                choices: employeeResults
+            }
+        ]).then((answers) => {
+            db.query(`UPDATE employee SET manager_id = ${answers.selectedManager} WHERE id = ${answers.selectedEmployee}`, (err) => {
+                if(err) {
+                    console.error(err);
+                } else {
+                    clearThenLogo();
+                    console.log(`\n✅ Manager for updated.\n`)
+                }
+                init();
+            });
+        })
+    })
 
 };
 
 // VIEW EMPLOYEES BY MANAGER
 // ##########################################################################################################
 const viewEmployeesByManager = () => {
+    db.query(`SELECT first_name, last_name, id FROM employee
+              WHERE (id IN (SELECT manager_id FROM employee))`, 
+              (err, managerResults) => {
+                if(err) console.error(err);
 
+                managerResults = managerResults.map((manager) => {
+                    return {
+                        name: manager.first_name + ' ' + manager.last_name,
+                        value: manager.id
+                    }
+                });
+
+                prompt([
+                    {
+                        type: 'list',
+                        name: 'manager',
+                        message: 'Select manager to view his team:',
+                        choices: managerResults
+                    }
+                ]).then((selectedManager) => {
+                    db.query(`SELECT e.first_name, e.last_name, r.title FROM employee e 
+                              INNER JOIN roles r ON e.role_id = r.id 
+                              WHERE manager_id = ${selectedManager.manager}`, (err, results) => {
+                        convertToTable(results);
+                    });
+                });
+              });
 };
 
 // VIEW EMPLOYEES BY DEPARTMENT
@@ -362,14 +434,25 @@ const viewEmployeesByDepartment = () => {
 
 };
 
-// DELETE -> DEPARTMENTS, ROLES, EMPLOYEES
+// DELETE DEPARTMENT
 // ##########################################################################################################
-const deleteFromDB = () => {
+const deleteDepartment = () => {
 
 };
 
+// DELETE ROLE
+// ##########################################################################################################
+const deleteRole = () => {
+
+};
+
+// DELETE EMPLOYEE
+// ##########################################################################################################
+const deleteEmployee = () => {
+
+};
 // VIEW BUDGET
 // ##########################################################################################################
-const viewUtilizedBudget = () => {
+const viewDepartmentBudget = () => {
 
 };
