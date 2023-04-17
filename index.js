@@ -2,14 +2,21 @@ const { prompt } = require('inquirer');
 const cli = require('./helpers/cli.js')
 const db = require('./db/connection.js');
 const cTable = require('console.table');
+const clear = require('clear');
 
+const clearThenLogo = () => {
+    clear();
+    console.log(cli.logo);
+}
 const convertToTable = (data) => {
+    clearThenLogo();
     const table = cTable.getTable(data);
     console.table('\n' + table);
     init();
 };
 
-console.log(cli.logo);
+clearThenLogo();
+
 db.connect((err) => {
     err ? console.error(err) : init();
 });
@@ -43,10 +50,32 @@ const init = () => {
     
             case cli.options.choices[6]: // Update an employee role
                     updateEmployeeRole();
-                break;         
-            
-            case cli.options.choices[7]: // Exit
+                break;
+
+            case cli.options.choices[7]: // Update an employee manager
+                updateEmployeeManager();
+            break;    
+
+            case cli.options.choices[8]: // View employees by manager
+                viewEmployeesByManager();
+            break;  
+
+            case cli.options.choices[9]: // View employees by department
+                viewEmployeesByDepartment();
+            break; 
+
+            case cli.options.choices[10]: // Delete -> next prompt
+                deleteFromDB();
+            break; 
+
+            case cli.options.choices[11]: // View utilized budget
+                viewUtilizedBudget();
+            break; 
+
+            case cli.options.choices[12]: // Exit
+                clear();
                 db.end();
+                console.log(`Goodbye! 👋`)
         }
 
     })
@@ -55,7 +84,7 @@ const init = () => {
 // VIEW ALL DEPARTMENTS
 // ##########################################################################################################
 const viewAllDepartments = () => {
-    db.query('SELECT * FROM department', (err, results) => {
+    db.query('SELECT * FROM department ORDER BY id', (err, results) => {
         convertToTable(results);
     });
 };
@@ -99,15 +128,27 @@ const viewAllEmployees = () => {
 // I am prompted to enter the name of the 
 // department and that department is added to the database
 const addNewDepartment = () => {
-    prompt(cli.addDepartment).then((data => {
+    prompt([
+        {
+        type: 'input',
+        name: 'department_name',
+        message: 'Enter new department name:',
+        validate: async (input) => {
+            return input.length >= 3 ? true : 'Incorrect input. Must be at least 3 characters.';
+        }
+    }
+    ]).then((data => {
         db.query(`INSERT INTO department (department_name) VALUES ("${data.department_name}")`, (err, results) => {
             if(err) {
-                console.error(`\n\n❌ Unable to add new department. Entered name cannot be empty or duplicated.`);
+                clearThenLogo();
+                console.error(`\n\n❌ Unable to add new department. Entered name cannot be empty or duplicated.\n`);
+                init();
             } else {
-                console.log(`✅ New department ${data.department_name} added!`)
+                clearThenLogo();
+                console.log(`\n\n✅ New department ${data.department_name} added!\n`);
+                init();
             }
         })
-    init();
     }))
 };
 
@@ -159,6 +200,7 @@ const addNewRole = () => {
                 (err) => {
                     if (err) console.error(err);
                 });
+                clearThenLogo();
                 console.log(`\n✅ New role added: ${answers.title}.\n`)
                 init();
             });
@@ -238,6 +280,7 @@ const addNewEmployee = () => {
                     (err) => {
                         if (err) console.error(err);
                     });
+                    clearThenLogo();
                     console.log(`\n✅ New employee added!\n`)
                     init();
                 }) // end of prompt
@@ -290,6 +333,7 @@ const updateEmployeeRole = () => {
                         if(err) {
                             console.error(err);
                         } else {
+                            clearThenLogo();
                             console.log(`\n✅ Role for updated.\n`)
                         }
                         init();
@@ -298,4 +342,34 @@ const updateEmployeeRole = () => {
             })
         })
     }) // end of select employee query
+};
+
+// UPDATE AN EMPLOYEE MANAGER
+// ##########################################################################################################
+const updateEmployeeManager = () => {
+
+};
+
+// VIEW EMPLOYEES BY MANAGER
+// ##########################################################################################################
+const viewEmployeesByManager = () => {
+
+};
+
+// VIEW EMPLOYEES BY DEPARTMENT
+// ##########################################################################################################
+const viewEmployeesByDepartment = () => {
+
+};
+
+// DELETE -> DEPARTMENTS, ROLES, EMPLOYEES
+// ##########################################################################################################
+const deleteFromDB = () => {
+
+};
+
+// VIEW BUDGET
+// ##########################################################################################################
+const viewUtilizedBudget = () => {
+
 };
