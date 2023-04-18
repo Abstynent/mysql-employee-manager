@@ -1,5 +1,6 @@
 const { prompt } = require('inquirer');
 const cli = require('./helpers/cli.js')
+const mapChoices = ('./helpers/mapChoices.js');
 const db = require('./db/connection.js');
 const cTable = require('console.table');
 const clear = require('clear');
@@ -173,7 +174,7 @@ const addNewDepartment = () => {
 // and department for the role and that role is added to the database
 const addNewRole = () => {
     db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, results) => {
-        if(err) console.error(err);
+        if(err) throw new err;
 
         results = results.map((department) => {
             return {
@@ -228,7 +229,7 @@ const addNewRole = () => {
 //  last name, role, and manager, and that employee is added to the database
 const addNewEmployee = () => {
     db.query('SELECT * FROM roles ORDER BY title ASC', (err, rolesResult) => {
-        if(err) console.error(err);
+        if(err) throw new err;
 
         rolesResult = rolesResult.map((roles) => {
             return {
@@ -239,7 +240,7 @@ const addNewEmployee = () => {
         
         db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`,
             (err, managerResults) => {
-                if(err) console.error(err);
+                if(err) throw new err;
                 managerResults = managerResults.map((manager) => {
                     return {
                         name: manager.first_name + ' ' + manager.last_name,
@@ -306,7 +307,7 @@ const addNewEmployee = () => {
 //  update and their new role and this information is updated in the database 
 const updateEmployeeRole = () => {
     db.query(`SELECT * FROM employee`, (err, employeeResults) => {
-        if(err) console.error(err);
+        if(err) throw new err;
 
         employeeResults = employeeResults.map((employee) => {
             return {
@@ -316,7 +317,7 @@ const updateEmployeeRole = () => {
         });
 
         db.query(`SELECT * FROM roles`, (err, rolesResults) => {
-            if(err) console.error(err);
+            if(err) throw new err;
 
             rolesResults = rolesResults.map((roles) => {
                 return {
@@ -360,7 +361,7 @@ const updateEmployeeRole = () => {
 // ##########################################################################################################
 const updateEmployeeManager = () => {
     db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
-        if(err) console.error(err);
+        if(err) throw new err;
 
         employeeResults = employeeResults.map((employee) => {
             return {
@@ -402,7 +403,7 @@ const viewEmployeesByManager = () => {
     db.query(`SELECT first_name, last_name, id FROM employee
               WHERE (id IN (SELECT manager_id FROM employee))`, 
               (err, managerResults) => {
-                if(err) console.error(err);
+                if(err) throw new err;
 
                 managerResults = managerResults.map((manager) => {
                     return {
@@ -431,7 +432,33 @@ const viewEmployeesByManager = () => {
 // VIEW EMPLOYEES BY DEPARTMENT
 // ##########################################################################################################
 const viewEmployeesByDepartment = () => {
+    db.query(`SELECT * FROM department`, (err, departmentResults) => {
+        if(err) throw new err;
 
+        departmentResults = departmentResults.map((department) => {
+            return {
+                name: department.department_name,
+                value: department.id
+            };
+        });
+
+        prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: 'Select department to view all employees:',
+                choices: departmentResults
+            }
+        ]).then((selectedDepartment) => {
+            db.query(`SELECT e.first_name, e.last_name, r.title
+                      FROM employee e 
+                      INNER JOIN roles r ON e.role_id = r.id 
+                      WHERE department_id = ${selectedDepartment.department}`, (err, results) => {
+                        if(err) throw new err;
+                        convertToTable(results);
+                      })
+        })
+    })
 };
 
 // DELETE DEPARTMENT
