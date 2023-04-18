@@ -112,7 +112,8 @@ const viewAllRoles = () => {
     db.query(`
         SELECT roles.id, roles.title, department.department_name, roles.salary FROM roles 
         INNER JOIN department 
-        ON roles.department_id = department.id`,
+        ON roles.department_id = department.id
+        ORDER BY roles.title ASC`,
 
         (err, results) => {
             convertToTable(results);
@@ -132,7 +133,8 @@ const viewAllEmployees = () => {
                     FROM employee AS employee
                     LEFT JOIN employee AS manager ON employee.manager_id = manager.id
                     INNER JOIN roles ON employee.role_id = roles.id
-                    INNER JOIN department ON roles.department_id = department.id`, (err, results) => {
+                    INNER JOIN department ON roles.department_id = department.id
+                    ORDER BY employee.first_name ASC`, (err, results) => {
                     convertToTable(results);
                 }
                 );
@@ -173,7 +175,7 @@ const addNewDepartment = () => {
 // and department for the role and that role is added to the database
 const addNewRole = () => {
     db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, results) => {
-        if(err) throw new err;
+        if(err) throw new Error(err);
 
         results = results.map((department) => {
             return {
@@ -228,7 +230,7 @@ const addNewRole = () => {
 //  last name, role, and manager, and that employee is added to the database
 const addNewEmployee = () => {
     db.query('SELECT * FROM roles ORDER BY title ASC', (err, rolesResult) => {
-        if(err) throw new err;
+        if(err) throw new Error(err);
 
         rolesResult = rolesResult.map((roles) => {
             return {
@@ -239,7 +241,7 @@ const addNewEmployee = () => {
         
         db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`,
             (err, managerResults) => {
-                if(err) throw new err;
+                if(err) throw new Error(err);
                 managerResults = managerResults.map((manager) => {
                     return {
                         name: manager.first_name + ' ' + manager.last_name,
@@ -305,8 +307,8 @@ const addNewEmployee = () => {
 // I am prompted to select an employee to
 //  update and their new role and this information is updated in the database 
 const updateEmployeeRole = () => {
-    db.query(`SELECT * FROM employee`, (err, employeeResults) => {
-        if(err) throw new err;
+    db.query(`SELECT * FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
+        if(err) throw new Error(err);
 
         employeeResults = employeeResults.map((employee) => {
             return {
@@ -315,8 +317,8 @@ const updateEmployeeRole = () => {
             };
         });
 
-        db.query(`SELECT * FROM roles`, (err, rolesResults) => {
-            if(err) throw new err;
+        db.query(`SELECT * FROM roles ORDER BY title ASC`, (err, rolesResults) => {
+            if(err) throw new Error(err);
 
             rolesResults = rolesResults.map((roles) => {
                 return {
@@ -360,7 +362,7 @@ const updateEmployeeRole = () => {
 // ##########################################################################################################
 const updateEmployeeManager = () => {
     db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
-        if(err) throw new err;
+        if(err) throw new Error(err);
 
         employeeResults = employeeResults.map((employee) => {
             return {
@@ -400,9 +402,10 @@ const updateEmployeeManager = () => {
 // ##########################################################################################################
 const viewEmployeesByManager = () => {
     db.query(`SELECT first_name, last_name, id FROM employee
-              WHERE (id IN (SELECT manager_id FROM employee))`, 
+              WHERE (id IN (SELECT manager_id FROM employee))
+              ORDER BY first_name`, 
               (err, managerResults) => {
-                if(err) throw new err;
+                if(err) throw new Error(err);
 
                 managerResults = managerResults.map((manager) => {
                     return {
@@ -421,7 +424,8 @@ const viewEmployeesByManager = () => {
                 ]).then((selectedManager) => {
                     db.query(`SELECT e.first_name, e.last_name, r.title FROM employee e 
                               INNER JOIN roles r ON e.role_id = r.id 
-                              WHERE manager_id = ${selectedManager.manager}`, (err, results) => {
+                              WHERE manager_id = ${selectedManager.manager}
+                              ORDER BY e.first_name`, (err, results) => {
                         convertToTable(results);
                     });
                 });
@@ -431,8 +435,8 @@ const viewEmployeesByManager = () => {
 // VIEW EMPLOYEES BY DEPARTMENT
 // ##########################################################################################################
 const viewEmployeesByDepartment = () => {
-    db.query(`SELECT * FROM department`, (err, departmentResults) => {
-        if(err) throw new err;
+    db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, departmentResults) => {
+        if(err) throw new Error(err);
 
         departmentResults = departmentResults.map((department) => {
             return {
@@ -452,8 +456,9 @@ const viewEmployeesByDepartment = () => {
             db.query(`SELECT e.first_name, e.last_name, r.title
                       FROM employee e 
                       INNER JOIN roles r ON e.role_id = r.id 
-                      WHERE department_id = ${selectedDepartment.department}`, (err, results) => {
-                        if(err) throw new err;
+                      WHERE department_id = ${selectedDepartment.department}
+                      ORDER BY e.first_name ASC`, (err, results) => {
+                        if(err) throw new Error(err);
                         convertToTable(results);
                       })
         })
@@ -463,8 +468,8 @@ const viewEmployeesByDepartment = () => {
 // DELETE DEPARTMENT
 // ##########################################################################################################
 const deleteDepartment = () => {
-    db.query(`SELECT * FROM department`, (err, departmentResults) => {
-        if(err) throw new err;
+    db.query(`SELECT * FROM department ORDER BY department_name`, (err, departmentResults) => {
+        if(err) throw new Error(err);
 
         departmentResults = departmentResults.map((department) => {
             return {
@@ -497,8 +502,8 @@ const deleteDepartment = () => {
 // DELETE ROLE
 // ##########################################################################################################
 const deleteRole = () => {
-    db.query(`SELECT * FROM roles`, (err, rolesResults) => {
-        if(err) throw new err;
+    db.query(`SELECT * FROM roles ORDER BY title`, (err, rolesResults) => {
+        if(err) throw new Error(err);
 
         rolesResults = rolesResults.map((role) => {
             return {
@@ -514,13 +519,13 @@ const deleteRole = () => {
                 message: 'Select role to delete (it will delete all employees in that role)',
                 choices: rolesResults
             }
-        ]).then((selectedRole) => {
-            db.query(`DELETE FROM roles WHERE id = ${selectedRole.role}`, (err) => {
+        ]).then((selectedEmployee) => {
+            db.query(`DELETE FROM roles WHERE id = ${selectedEmployee.role}`, (err) => {
                 if(err) {
-                    throw err;
+                    throw new Error(err);
                 } else {
                     clearThenLogo();
-                    console.log(`\n\n✅ Role ID: ${selectedRole.role} deleted.\n\n`);
+                    console.log(`\n\n✅ Role ID: ${selectedEmployee.role} deleted.\n\n`);
                     init();
                 };
             });
@@ -531,7 +536,35 @@ const deleteRole = () => {
 // DELETE EMPLOYEE
 // ##########################################################################################################
 const deleteEmployee = () => {
+    db.query(`SELECT * FROM employee ORDER BY first_name`, (err, employeesResults) => {
+        if(err) throw new Error(err);
 
+        employeesResults = employeesResults.map((employee) => {
+            return {
+                name: employee.first_name + ' ' + employee.last_name,
+                value: employee.id
+            };
+        });
+
+        prompt([
+            {
+                type: 'list',
+                name: 'employee',
+                message: 'Select employee to delete:',
+                choices: employeesResults
+            }
+        ]).then((selectedEmployee) => {
+            db.query(`DELETE FROM employee WHERE id = ${selectedEmployee.employee}`, (err) => {
+                if(err) {
+                    throw err;
+                } else {
+                    clearThenLogo();
+                    console.log(`\n\n✅ Employee ID: ${selectedEmployee.employee} deleted.\n\n`);
+                    init();
+                };
+            });
+        });
+    });
 };
 // VIEW BUDGET
 // ##########################################################################################################
