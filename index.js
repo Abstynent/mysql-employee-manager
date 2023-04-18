@@ -1,6 +1,5 @@
 const { prompt } = require('inquirer');
 const cli = require('./helpers/cli.js')
-const mapChoices = ('./helpers/mapChoices.js');
 const db = require('./db/connection.js');
 const cTable = require('console.table');
 const clear = require('clear');
@@ -464,13 +463,69 @@ const viewEmployeesByDepartment = () => {
 // DELETE DEPARTMENT
 // ##########################################################################################################
 const deleteDepartment = () => {
+    db.query(`SELECT * FROM department`, (err, departmentResults) => {
+        if(err) throw new err;
 
+        departmentResults = departmentResults.map((department) => {
+            return {
+                name: department.department_name,
+                value: department.id
+            };
+        });
+
+        prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: 'Select department to delete (it will delete all roles and employees from selected department)',
+                choices: departmentResults
+            }
+        ]).then((selectedDepartment) => {
+            db.query(`DELETE FROM department WHERE id = ${selectedDepartment.department}`, (err) => {
+                if(err) {
+                    throw err;
+                } else {
+                    clearThenLogo();
+                    console.log(`\n\n✅ Department ID: ${selectedDepartment.department} deleted.\n\n`);
+                    init();
+                };
+            });
+        });
+    });
 };
 
 // DELETE ROLE
 // ##########################################################################################################
 const deleteRole = () => {
+    db.query(`SELECT * FROM roles`, (err, rolesResults) => {
+        if(err) throw new err;
 
+        rolesResults = rolesResults.map((role) => {
+            return {
+                name: role.title,
+                value: role.id
+            };
+        });
+
+        prompt([
+            {
+                type: 'list',
+                name: 'role',
+                message: 'Select role to delete (it will delete all employees in that role)',
+                choices: rolesResults
+            }
+        ]).then((selectedRole) => {
+            db.query(`DELETE FROM roles WHERE id = ${selectedRole.role}`, (err) => {
+                if(err) {
+                    throw err;
+                } else {
+                    clearThenLogo();
+                    console.log(`\n\n✅ Role ID: ${selectedRole.role} deleted.\n\n`);
+                    init();
+                };
+            });
+        });
+    });
 };
 
 // DELETE EMPLOYEE
