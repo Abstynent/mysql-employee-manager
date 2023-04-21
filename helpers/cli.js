@@ -1,3 +1,4 @@
+// cli object to hold all main prompt questions
 module.exports = cli = {
     options: {
         type: 'list',

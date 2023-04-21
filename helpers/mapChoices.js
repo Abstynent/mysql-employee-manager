@@ -1,6 +1,8 @@
 const db = require('../db/connection.js');
 const util = require('util');
 const queryPromise = util.promisify(db.query).bind(db);
+
+// function to get list of selected data and turn into array of objects that can be used in prompt as choices
 module.exports = mapChoices = async (option) => {
     switch(option) {
         case "departments":

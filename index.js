@@ -5,11 +5,20 @@ const cTable = require('console.table'); // display tables nicely
 const clear = require('clear'); // clear the screen
 const mapChoices = require('./helpers/mapChoices.js'); // get array of objects from mysql
 
+// check database connection, then start main function.
+// do not forget to set connection.js file with your user data
+db.connect((err) => {
+    err ? console.error(err) : init();
+});
+
+// clear the terminal and display logo
+clearThenLogo();
 const clearThenLogo = () => {
     clear();
     console.log(cli.logo);
 };
 
+// convert data to nice table using cTable
 const convertToTable = (data) => {
     clearThenLogo();
     const table = cTable.getTable(data);
@@ -17,12 +26,7 @@ const convertToTable = (data) => {
     init();
 };
 
-db.connect((err) => {
-    err ? console.error(err) : init();
-});
-
-clearThenLogo();
-
+// start the app
 const init = () => {
     prompt(cli.options).then((data) => {
         switch(data.userChoice) {
@@ -75,6 +79,7 @@ const updateMenu = () => {
         }
     })
 };
+
 // DELETE MENU
 // ##########################################################################################################
 const deleteMenu = () => {
@@ -87,6 +92,7 @@ const deleteMenu = () => {
         }
     })
 };
+
 // Exit function
 // ##########################################################################################################
 const exitFunc = () => {
@@ -106,8 +112,6 @@ const viewAllDepartments = () => {
 
 // VIEW ALL ROLES
 // ##########################################################################################################
-// I am presented with the job title, role id, the department 
-// that role belongs to, and the salary for that role
 const viewAllRoles = () => {
     db.query(`
         SELECT roles.id, roles.title, department.department_name, roles.salary FROM roles 
@@ -122,9 +126,6 @@ const viewAllRoles = () => {
 
 // VIEW ALL EMPLOYEES
 // ##########################################################################################################
-// View all employees I am presented with a formatted table showing employee data,
-// including employee ids, first names, last names, job titles, departments,
-// salaries, and managers that the employees 
 const viewAllEmployees = () => {
     db.query(`
                 SELECT
@@ -142,8 +143,6 @@ const viewAllEmployees = () => {
 
 // ADD NEW DEPARTMENT
 // ##########################################################################################################
-// I am prompted to enter the name of the 
-// department and that department is added to the database
 const addNewDepartment = () => {
     prompt([
         {
@@ -171,8 +170,6 @@ const addNewDepartment = () => {
 
 // ADD NEW ROLE
 // ##########################################################################################################
-// I am prompted to enter the name, salary, 
-// and department for the role and that role is added to the database
 const addNewRole = async () => {
     const departments = await mapChoices("departments");
     
@@ -217,8 +214,6 @@ const addNewRole = async () => {
 }
 // ADD NEW EMPLOYEE
 // ##########################################################################################################
-// I am prompted to enter the employee’s first name,
-//  last name, role, and manager, and that employee is added to the database
 const addNewEmployee = async () => {
     const roles = await mapChoices("roles");
     const managers = await mapChoices("managers");
@@ -271,8 +266,6 @@ const addNewEmployee = async () => {
 
 // UPDATE EMPLOYEE ROLE
 // ##########################################################################################################
-// I am prompted to select an employee to
-//  update and their new role and this information is updated in the database 
 const updateEmployeeRole = async() => {
     const employees = await mapChoices("employees");
     const roles = await mapChoices("roles");
@@ -304,7 +297,7 @@ const updateEmployeeRole = async() => {
             });
         });
     });
-}
+};
 
 // UPDATE AN EMPLOYEE MANAGER
 // ##########################################################################################################
@@ -382,6 +375,7 @@ const viewEmployeesByDepartment = async () => {
                   });
     });
 };
+
 // DELETE DEPARTMENT
 // ##########################################################################################################
 const deleteDepartment = async () => {
