@@ -2,7 +2,9 @@ const { prompt } = require('inquirer');
 const cli = require('./helpers/cli.js')
 const db = require('./db/connection.js');
 const cTable = require('console.table');
+const dep = require('./helpers/mapChoices.js');
 const clear = require('clear');
+const mapChoices = require('./helpers/mapChoices.js');
 
 const clearThenLogo = () => {
     clear();
@@ -173,399 +175,290 @@ const addNewDepartment = () => {
 // ##########################################################################################################
 // I am prompted to enter the name, salary, 
 // and department for the role and that role is added to the database
-const addNewRole = () => {
-    db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, results) => {
-        if(err) throw new Error(err);
-
-        results = results.map((department) => {
-            return {
-                name: department.department_name,
-                value: department.id,
-            };
+const addNewRole = async () => {
+    const departments = await mapChoices("departments");
+    
+    prompt([
+        {
+            type: 'input',
+            name: 'title',
+            message: 'Enter new role title:',
+            validate: async (input) => {
+                return input.length >= 3 ? true : 'Incorrect input. Must be at least 3 characters.';
+            }
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: 'Enter salary for the new role:',
+            validate: async (input) => {
+                return isNaN(input) ? 'Entered value is not a number.' : true;
+            }
+        },
+        {
+            type: 'list',
+            name: 'department',
+            message: 'Select a department:',
+            choices: departments
+        }
+    ]).then((answers) => {
+        db.query(`INSERT INTO roles SET ?`,
+        {
+            title: answers.title,
+            salary: answers.salary,
+            department_id: answers.department
+        },
+        (err) => {
+            if (err) console.error(err);
         });
 
-            prompt([
-                {
-                    type: 'input',
-                    name: 'title',
-                    message: 'Enter new role title:',
-                    validate: async (input) => {
-                        return input.length >= 3 ? true : 'Incorrect input. Must be at least 3 characters.';
-                    }
-                },
-                {
-                    type: 'input',
-                    name: 'salary',
-                    message: 'Enter salary for the new role:',
-                    validate: async (input) => {
-                        return isNaN(input) ? 'Entered value is not a number.' : true;
-                    }
-                },
-                {
-                    type: 'list',
-                    name: 'department',
-                    message: 'Select a department:',
-                    choices: results
-                }
-            ]).then((answers) => {
-                db.query(`INSERT INTO roles SET ?`,
-                {
-                    title: answers.title,
-                    salary: answers.salary,
-                    department_id: answers.department
-                },
-                (err) => {
-                    if (err) console.error(err);
-                });
-                clearThenLogo();
-                console.log(`\n✅ New role added: ${answers.title}.\n`)
-                init();
-            });
-    })
-};
-
+        clearThenLogo();
+        console.log(`\n✅ New role added: ${answers.title}.\n`)
+        init();
+    });
+}
 // ADD NEW EMPLOYEE
 // ##########################################################################################################
 // I am prompted to enter the employee’s first name,
 //  last name, role, and manager, and that employee is added to the database
-const addNewEmployee = () => {
-    db.query('SELECT * FROM roles ORDER BY title ASC', (err, rolesResult) => {
-        if(err) throw new Error(err);
+const addNewEmployee = async () => {
+    const roles = await mapChoices("roles");
+    const managers = await mapChoices("managers");
 
-        rolesResult = rolesResult.map((roles) => {
-            return {
-                name: roles.title,
-                value: roles.id,
+    prompt([
+        {
+            type: 'input',
+            name: 'first_name',
+            message: 'Enter first name:',
+            validate: async (input) => {
+                return input.length >= 2 ? true : 'Entered name must be at least 2 characters long.';
             }
-        }); // end of roles.map
-        
-        db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`,
-            (err, managerResults) => {
-                if(err) throw new Error(err);
-                managerResults = managerResults.map((manager) => {
-                    return {
-                        name: manager.first_name + ' ' + manager.last_name,
-                        value: manager.id,
-                    };
-                })
-                managerResults.unshift(
-                    {
-                        name: '⚪️ No manager',
-                        value: null,
-                    });
-
-                prompt([
-                    {
-                        type: 'input',
-                        name: 'first_name',
-                        message: 'Enter first name:',
-                        validate: async (input) => {
-                            return input.length >= 2 ? true : 'Entered name must be at least 2 characters long.';
-                        }
-                    },
-                    {
-                        type: 'input',
-                        name: 'last_name',
-                        message: 'Enter last name:',
-                        validate: async (input) => {
-                            return input.length >= 2 ? true: 'Entered name must be at least 2 characters long';
-                        }
-                    },
-                    {
-                        type: 'list',
-                        name: 'role',
-                        message: 'Select role for the new employee:',
-                        choices: rolesResult
-                    },
-                    {
-                        type: 'list',
-                        name: 'manager',
-                        message: 'Select manager from the list:',
-                        choices: managerResults
-                    }
-                ]).then((answers) => {
-                    db.query(`INSERT INTO employee SET ?`, 
-                    {
-                        first_name: answers.first_name,
-                        last_name: answers.last_name,
-                        role_id: answers.role,
-                        manager_id: answers.manager
-                    },
-                    (err) => {
-                        if (err) console.error(err);
-                    });
-                    clearThenLogo();
-                    console.log(`\n✅ New employee added!\n`)
-                    init();
-                }) // end of prompt
-              })
-    }) // end of query select all roles
+        },
+        {
+            type: 'input',
+            name: 'last_name',
+            message: 'Enter last name:',
+            validate: async (input) => {
+                return input.length >= 2 ? true: 'Entered name must be at least 2 characters long';
+            }
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: 'Select role for the new employee:',
+            choices: roles
+        },
+        {
+            type: 'list',
+            name: 'manager',
+            message: 'Select manager from the list:',
+            choices: managers
+        }
+    ]).then((answers) => {
+        db.query(`INSERT INTO employee SET ?`, 
+        {
+            first_name: answers.first_name,
+            last_name: answers.last_name,
+            role_id: answers.role,
+            manager_id: answers.manager
+        },
+        (err) => {
+            if (err) console.error(err);
+        });
+        clearThenLogo();
+        console.log(`\n✅ New employee added!\n`)
+        init();
+    }) // end of prompt
 };
 
 // UPDATE EMPLOYEE ROLE
 // ##########################################################################################################
 // I am prompted to select an employee to
 //  update and their new role and this information is updated in the database 
-const updateEmployeeRole = () => {
-    db.query(`SELECT * FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
-        if(err) throw new Error(err);
+const updateEmployeeRole = async() => {
+    const employees = await mapChoices("employees");
+    const roles = await mapChoices("roles");
 
-        employeeResults = employeeResults.map((employee) => {
-            return {
-                name: employee.first_name + ' ' + employee.last_name,
-                value: employee.id,
-            };
-        });
-
-        db.query(`SELECT * FROM roles ORDER BY title ASC`, (err, rolesResults) => {
-            if(err) throw new Error(err);
-
-            rolesResults = rolesResults.map((roles) => {
-                return {
-                    name: roles.title,
-                    value: roles.id,
-                };
-            });
-
-            prompt([
-                {
-                    type: 'list',
-                    name: 'employee',
-                    message: 'Select employee from the list:',
-                    choices: employeeResults
-                }
-            ]).then((selectedEmployee) => {
-                prompt([
-                    {
-                        type: 'list',
-                        name: 'newRole',
-                        message: `Select new role for ${selectedEmployee.employee}: `,
-                        choices: rolesResults
-                    }
-                ]).then((role) => {
-                    db.query(`UPDATE employee SET role_id = ${role.newRole} WHERE id = ${selectedEmployee.employee}`, (err) => {
-                        if(err) {
-                            console.error(err);
-                        } else {
-                            clearThenLogo();
-                            console.log(`\n✅ Role for updated.\n`)
-                        }
-                        init();
-                    } );
-                })
-            })
-        })
-    }) // end of select employee query
-};
-
-// UPDATE AN EMPLOYEE MANAGER
-// ##########################################################################################################
-const updateEmployeeManager = () => {
-    db.query(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`, (err, employeeResults) => {
-        if(err) throw new Error(err);
-
-        employeeResults = employeeResults.map((employee) => {
-            return {
-                name: employee.first_name + ' ' + employee.last_name,
-                value: employee.id
-            }
-        }); // end of map
+    prompt([
+        {
+            type: 'list',
+            name: 'employee',
+            message: 'Select employee from the list:',
+            choices: employees
+        }
+    ]).then((selectedEmployee) => {
         prompt([
             {
                 type: 'list',
-                name: 'selectedEmployee',
-                message: 'Select an employee to update:',
-                choices: employeeResults
-            },
-            {
-                type: 'list',
-                name: 'selectedManager',
-                message: 'Select a manager that this employee has to report to:',
-                choices: employeeResults
+                name: 'newRole',
+                message: `Select new role for ${selectedEmployee.employee}: `,
+                choices: roles
             }
-        ]).then((answers) => {
-            db.query(`UPDATE employee SET manager_id = ${answers.selectedManager} WHERE id = ${answers.selectedEmployee}`, (err) => {
+        ]).then((role) => {
+            db.query(`UPDATE employee SET role_id = ${role.newRole} WHERE id = ${selectedEmployee.employee}`, (err) => {
                 if(err) {
                     console.error(err);
                 } else {
                     clearThenLogo();
-                    console.log(`\n✅ Manager for updated.\n`)
+                    console.log(`\n✅ Role for updated.\n`)
                 }
                 init();
             });
-        })
-    })
+        });
+    });
+}
 
+// UPDATE AN EMPLOYEE MANAGER
+// ##########################################################################################################
+const updateEmployeeManager = async () => {
+    const employees = await mapChoices("employees");
+
+    prompt([
+        {
+            type: 'list',
+            name: 'selectedEmployee',
+            message: 'Select an employee to update:',
+            choices: employees
+        },
+        {
+            type: 'list',
+            name: 'selectedManager',
+            message: 'Select a manager that this employee has to report to:',
+            choices: employees
+        }
+    ]).then((answers) => {
+        db.query(`UPDATE employee SET manager_id = ${answers.selectedManager} WHERE id = ${answers.selectedEmployee}`, (err) => {
+            if(err) {
+                console.error(err);
+            } else {
+                clearThenLogo();
+                console.log(`\n✅ Manager for ${answers.selectedEmployee} updated to ${answers.selectedManager}.\n`)
+            }
+            init();
+        });
+    });
 };
 
 // VIEW EMPLOYEES BY MANAGER
 // ##########################################################################################################
-const viewEmployeesByManager = () => {
-    db.query(`SELECT first_name, last_name, id FROM employee
-              WHERE (id IN (SELECT manager_id FROM employee))
-              ORDER BY first_name`, 
-              (err, managerResults) => {
-                if(err) throw new Error(err);
+const viewEmployeesByManager = async () => {
+    const managers = await mapChoices("actualManagers");
 
-                managerResults = managerResults.map((manager) => {
-                    return {
-                        name: manager.first_name + ' ' + manager.last_name,
-                        value: manager.id
-                    }
-                });
-
-                prompt([
-                    {
-                        type: 'list',
-                        name: 'manager',
-                        message: 'Select manager to view his team:',
-                        choices: managerResults
-                    }
-                ]).then((selectedManager) => {
-                    db.query(`SELECT e.first_name, e.last_name, r.title FROM employee e 
-                              INNER JOIN roles r ON e.role_id = r.id 
-                              WHERE manager_id = ${selectedManager.manager}
-                              ORDER BY e.first_name`, (err, results) => {
-                        convertToTable(results);
-                    });
-                });
-              });
+    prompt([
+        {
+            type: 'list',
+            name: 'manager',
+            message: 'Select manager to view his team:',
+            choices: managers
+        }
+    ]).then((selectedManager) => {
+        db.query(`SELECT e.first_name, e.last_name, r.title FROM employee e 
+                  INNER JOIN roles r ON e.role_id = r.id 
+                  WHERE manager_id = ${selectedManager.manager}
+                  ORDER BY e.first_name`, (err, results) => {
+            convertToTable(results);
+        });
+    });
 };
 
 // VIEW EMPLOYEES BY DEPARTMENT
 // ##########################################################################################################
-const viewEmployeesByDepartment = () => {
-    db.query(`SELECT * FROM department ORDER BY department_name ASC`, (err, departmentResults) => {
-        if(err) throw new Error(err);
+const viewEmployeesByDepartment = async () => {
+    const departments = await mapChoices("departments");
 
-        departmentResults = departmentResults.map((department) => {
-            return {
-                name: department.department_name,
-                value: department.id
-            };
-        });
-
-        prompt([
-            {
-                type: 'list',
-                name: 'department',
-                message: 'Select department to view all employees:',
-                choices: departmentResults
-            }
-        ]).then((selectedDepartment) => {
-            db.query(`SELECT e.first_name, e.last_name, r.title
-                      FROM employee e 
-                      INNER JOIN roles r ON e.role_id = r.id 
-                      WHERE department_id = ${selectedDepartment.department}
-                      ORDER BY e.first_name ASC`, (err, results) => {
-                        if(err) throw new Error(err);
-                        convertToTable(results);
-                      })
-        })
-    })
+    prompt([
+        {
+            type: 'list',
+            name: 'department',
+            message: 'Select department to view all employees:',
+            choices: departments
+        }
+    ]).then((selectedDepartment) => {
+        db.query(`SELECT e.first_name, e.last_name, r.title
+                  FROM employee e 
+                  INNER JOIN roles r ON e.role_id = r.id 
+                  WHERE department_id = ${selectedDepartment.department}
+                  ORDER BY e.first_name ASC`, (err, results) => {
+                    if(err) throw new Error(err);
+                    convertToTable(results);
+                  });
+    });
 };
-
 // DELETE DEPARTMENT
 // ##########################################################################################################
-const deleteDepartment = () => {
-    db.query(`SELECT * FROM department ORDER BY department_name`, (err, departmentResults) => {
-        if(err) throw new Error(err);
+const deleteDepartment = async () => {
+    const departments = await mapChoices("departments");
 
-        departmentResults = departmentResults.map((department) => {
-            return {
-                name: department.department_name,
-                value: department.id
+    prompt([
+        {
+            type: 'list',
+            name: 'department',
+            message: 'Select department to delete (it will delete all roles and employees from selected department)',
+            choices: departments
+        }
+    ]).then((selectedDepartment) => {
+        db.query(`DELETE FROM department WHERE id = ${selectedDepartment.department}`, (err) => {
+            if(err) {
+                throw err;
+            } else {
+                clearThenLogo();
+                console.log(`\n\n✅ Department ID: ${selectedDepartment.department} deleted.\n\n`);
+                init();
             };
-        });
-
-        prompt([
-            {
-                type: 'list',
-                name: 'department',
-                message: 'Select department to delete (it will delete all roles and employees from selected department)',
-                choices: departmentResults
-            }
-        ]).then((selectedDepartment) => {
-            db.query(`DELETE FROM department WHERE id = ${selectedDepartment.department}`, (err) => {
-                if(err) {
-                    throw err;
-                } else {
-                    clearThenLogo();
-                    console.log(`\n\n✅ Department ID: ${selectedDepartment.department} deleted.\n\n`);
-                    init();
-                };
-            });
         });
     });
 };
 
 // DELETE ROLE
 // ##########################################################################################################
-const deleteRole = () => {
-    db.query(`SELECT * FROM roles ORDER BY title`, (err, rolesResults) => {
-        if(err) throw new Error(err);
+const deleteRole = async () => {
+    const roles = await mapChoices("roles");
 
-        rolesResults = rolesResults.map((role) => {
-            return {
-                name: role.title,
-                value: role.id
+    prompt([
+        {
+            type: 'list',
+            name: 'role',
+            message: 'Select role to delete (it will delete all employees in that role)',
+            choices: roles
+        }
+    ]).then((selectedEmployee) => {
+        db.query(`DELETE FROM roles WHERE id = ${selectedEmployee.role}`, (err) => {
+            if(err) {
+                throw new Error(err);
+            } else {
+                clearThenLogo();
+                console.log(`\n\n✅ Role ID: ${selectedEmployee.role} deleted.\n\n`);
+                init();
             };
-        });
-
-        prompt([
-            {
-                type: 'list',
-                name: 'role',
-                message: 'Select role to delete (it will delete all employees in that role)',
-                choices: rolesResults
-            }
-        ]).then((selectedEmployee) => {
-            db.query(`DELETE FROM roles WHERE id = ${selectedEmployee.role}`, (err) => {
-                if(err) {
-                    throw new Error(err);
-                } else {
-                    clearThenLogo();
-                    console.log(`\n\n✅ Role ID: ${selectedEmployee.role} deleted.\n\n`);
-                    init();
-                };
-            });
         });
     });
 };
 
 // DELETE EMPLOYEE
 // ##########################################################################################################
-const deleteEmployee = () => {
-    db.query(`SELECT * FROM employee ORDER BY first_name`, (err, employeesResults) => {
-        if(err) throw new Error(err);
+const deleteEmployee = async () => {
+    const employees = await mapChoices("employees");
 
-        employeesResults = employeesResults.map((employee) => {
-            return {
-                name: employee.first_name + ' ' + employee.last_name,
-                value: employee.id
+    prompt([
+        {
+            type: 'list',
+            name: 'employee',
+            message: 'Select employee to delete:',
+            choices: employees
+        }
+    ]).then((selectedEmployee) => {
+        db.query(`DELETE FROM employee WHERE id = ${selectedEmployee.employee}`, (err) => {
+            if(err) {
+                throw err;
+            } else {
+                clearThenLogo();
+                console.log(`\n\n✅ Employee ID: ${selectedEmployee.employee} deleted.\n\n`);
+                init();
             };
-        });
-
-        prompt([
-            {
-                type: 'list',
-                name: 'employee',
-                message: 'Select employee to delete:',
-                choices: employeesResults
-            }
-        ]).then((selectedEmployee) => {
-            db.query(`DELETE FROM employee WHERE id = ${selectedEmployee.employee}`, (err) => {
-                if(err) {
-                    throw err;
-                } else {
-                    clearThenLogo();
-                    console.log(`\n\n✅ Employee ID: ${selectedEmployee.employee} deleted.\n\n`);
-                    init();
-                };
-            });
         });
     });
 };
+
 // VIEW BUDGET
 // ##########################################################################################################
 const viewDepartmentBudget = () => {
