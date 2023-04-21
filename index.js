@@ -1,10 +1,9 @@
-const { prompt } = require('inquirer');
-const cli = require('./helpers/cli.js')
-const db = require('./db/connection.js');
-const cTable = require('console.table');
-const dep = require('./helpers/mapChoices.js');
-const clear = require('clear');
-const mapChoices = require('./helpers/mapChoices.js');
+const { prompt } = require('inquirer'); // import prompt
+const cli = require('./helpers/cli.js'); // import prompt messages for cms
+const db = require('./db/connection.js'); // connect to DB
+const cTable = require('console.table'); // display tables nicely
+const clear = require('clear'); // clear the screen
+const mapChoices = require('./helpers/mapChoices.js'); // get array of objects from mysql
 
 const clearThenLogo = () => {
     clear();
@@ -46,7 +45,7 @@ const viewMenu = () => {
             case 'viewAllEmployees':          viewAllEmployees();           break;
             case 'viewEmployeesByDepartment': viewEmployeesByDepartment();  break;
             case 'viewEmployeesByManager':    viewEmployeesByManager();     break;
-            case 'viewDepartmentBudged':      viewDepartmentBudget();       break;
+            case 'viewDepartmentBudget':      viewDepartmentBudget();       break;
             case 'goBack':                    init();                       break;
         };
     });
@@ -87,7 +86,6 @@ const deleteMenu = () => {
             case 'goBack':              init();                 break;
         }
     })
-
 };
 // Exit function
 // ##########################################################################################################
@@ -462,5 +460,15 @@ const deleteEmployee = async () => {
 // VIEW BUDGET
 // ##########################################################################################################
 const viewDepartmentBudget = () => {
+    db.query(`SELECT d.department_name AS Department, 
+                SUM(r.salary) AS "Total Budget" 
+              FROM employee AS e 
+              LEFT JOIN roles AS r ON e.role_id = r.id
+              LEFT JOIN department AS d ON r.department_id = d.id
+              GROUP BY d.id`,
 
+                (err, results) => {
+                    if(err) throw new Error(err);
+                    convertToTable(results);
+                  });
 };
