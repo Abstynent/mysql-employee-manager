@@ -12,11 +12,11 @@ db.connect((err) => {
 });
 
 // clear the terminal and display logo
-clearThenLogo();
 const clearThenLogo = () => {
     clear();
     console.log(cli.logo);
 };
+clearThenLogo();
 
 // convert data to nice table using cTable
 const convertToTable = (data) => {
