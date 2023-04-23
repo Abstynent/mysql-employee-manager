@@ -1,4 +1,4 @@
-INSERT INTO department (department_name)
+INSERT INTO departments (department_name)
 VALUES ("Finance"),
        ("Fleet"),
        ("Compliance"),
@@ -21,7 +21,7 @@ VALUES ("CFO", 40000, 1), -- 1
        ("Lead Driver", 20000, 5), -- 13
        ("Area Manager", 35000, 5); -- 14
 
-INSERT INTO employee (first_name, last_name, role_id, manager_id)
+INSERT INTO employees (first_name, last_name, role_id, manager_id)
 VALUES ("Edward", "Byrne", 1, null), -- 1, CFO
        ("Aditya", "Mcintosh", 2, 1), -- 2, Accountant
        ("Liberty", "Reyes", 3, 1), -- 3, Auditor

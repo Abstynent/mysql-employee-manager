@@ -7,7 +7,7 @@ module.exports = returnChoices = async (option) => {
     switch(option) {
         case "departments":
             try {
-                let results = await queryPromise(`SELECT * FROM department ORDER BY department_name ASC`)
+                let results = await queryPromise(`SELECT * FROM departments ORDER BY department_name ASC`)
                 results = results.map((department) => {
                     return {
                         name: department.department_name,
@@ -34,7 +34,7 @@ module.exports = returnChoices = async (option) => {
 
         case "actualManagers":
             try {
-                let results = await queryPromise(`SELECT first_name, last_name, id FROM employee WHERE (id IN (SELECT manager_id FROM employee)) ORDER BY first_name`);
+                let results = await queryPromise(`SELECT first_name, last_name, id FROM employees WHERE (id IN (SELECT manager_id FROM employees)) ORDER BY first_name`);
                 results = results.map((actualManagers) => {
                     return {
                         name: actualManagers.first_name + ' ' + actualManagers.last_name,
@@ -65,7 +65,7 @@ module.exports = returnChoices = async (option) => {
 
         case "employees":
             try {
-                let results = await queryPromise(`SELECT first_name, last_name, id FROM employee ORDER BY first_name ASC`);
+                let results = await queryPromise(`SELECT first_name, last_name, id FROM employees ORDER BY first_name ASC`);
                 results = results.map((employee) => {
                     return {
                         name: employee.first_name + ' ' + employee.last_name,
