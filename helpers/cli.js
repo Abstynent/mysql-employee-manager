@@ -22,7 +22,7 @@ module.exports = cli = {
             { name: 'View all employees', value: 'viewAllEmployees' },
             { name: 'View employees by department', value: 'viewEmployeesByDepartment' },
             { name: 'View employees by manager', value: 'viewEmployeesByManager' },
-            { name: 'View the total utilized budget of department', value: 'viewDepartmentBudget' },
+            { name: 'View the total utilized budget of departments', value: 'viewDepartmentBudget' },
             { name: '🔙 BACK', value: 'goBack' }
         ]
     },

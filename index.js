@@ -3,7 +3,7 @@ const cli = require('./helpers/cli.js'); // import prompt messages for cms
 const db = require('./db/connection.js'); // connect to DB
 const cTable = require('console.table'); // display tables nicely
 const clear = require('clear'); // clear the screen
-const mapChoices = require('./helpers/mapChoices.js'); // get array of objects from mysql
+const returnChoices = require('./helpers/returnChoices.js'); // get array of objects from mysql
 
 // check database connection, then start main function.
 // do not forget to set connection.js file with your user data
@@ -171,7 +171,7 @@ const addNewDepartment = () => {
 // ADD NEW ROLE
 // ##########################################################################################################
 const addNewRole = async () => {
-    const departments = await mapChoices("departments");
+    const departments = await returnChoices("departments");
     
     prompt([
         {
@@ -215,8 +215,8 @@ const addNewRole = async () => {
 // ADD NEW EMPLOYEE
 // ##########################################################################################################
 const addNewEmployee = async () => {
-    const roles = await mapChoices("roles");
-    const managers = await mapChoices("managers");
+    const roles = await returnChoices("roles");
+    const managers = await returnChoices("managers");
 
     prompt([
         {
@@ -267,8 +267,8 @@ const addNewEmployee = async () => {
 // UPDATE EMPLOYEE ROLE
 // ##########################################################################################################
 const updateEmployeeRole = async() => {
-    const employees = await mapChoices("employees");
-    const roles = await mapChoices("roles");
+    const employees = await returnChoices("employees");
+    const roles = await returnChoices("roles");
 
     prompt([
         {
@@ -302,7 +302,7 @@ const updateEmployeeRole = async() => {
 // UPDATE AN EMPLOYEE MANAGER
 // ##########################################################################################################
 const updateEmployeeManager = async () => {
-    const employees = await mapChoices("employees");
+    const employees = await returnChoices("employees");
 
     prompt([
         {
@@ -333,7 +333,7 @@ const updateEmployeeManager = async () => {
 // VIEW EMPLOYEES BY MANAGER
 // ##########################################################################################################
 const viewEmployeesByManager = async () => {
-    const managers = await mapChoices("actualManagers");
+    const managers = await returnChoices("actualManagers");
 
     prompt([
         {
@@ -355,7 +355,7 @@ const viewEmployeesByManager = async () => {
 // VIEW EMPLOYEES BY DEPARTMENT
 // ##########################################################################################################
 const viewEmployeesByDepartment = async () => {
-    const departments = await mapChoices("departments");
+    const departments = await returnChoices("departments");
 
     prompt([
         {
@@ -379,7 +379,7 @@ const viewEmployeesByDepartment = async () => {
 // DELETE DEPARTMENT
 // ##########################################################################################################
 const deleteDepartment = async () => {
-    const departments = await mapChoices("departments");
+    const departments = await returnChoices("departments");
 
     prompt([
         {
@@ -404,7 +404,7 @@ const deleteDepartment = async () => {
 // DELETE ROLE
 // ##########################################################################################################
 const deleteRole = async () => {
-    const roles = await mapChoices("roles");
+    const roles = await returnChoices("roles");
 
     prompt([
         {
@@ -429,7 +429,7 @@ const deleteRole = async () => {
 // DELETE EMPLOYEE
 // ##########################################################################################################
 const deleteEmployee = async () => {
-    const employees = await mapChoices("employees");
+    const employees = await returnChoices("employees");
 
     prompt([
         {

@@ -3,7 +3,7 @@ const util = require('util');
 const queryPromise = util.promisify(db.query).bind(db);
 
 // function to get list of selected data and turn into array of objects that can be used in prompt as choices
-module.exports = mapChoices = async (option) => {
+module.exports = returnChoices = async (option) => {
     switch(option) {
         case "departments":
             try {
@@ -22,7 +22,7 @@ module.exports = mapChoices = async (option) => {
             break;
             
         case "managers":
-            let managers = await mapChoices("employees");
+            let managers = await returnChoices("employees");
                 managers.unshift(
                     {
                         name: '⚪️ No manager',
@@ -75,7 +75,7 @@ module.exports = mapChoices = async (option) => {
 
                 return results;
             } catch (error) {
-                
+                console.error(error);
             }
             break;
     }
