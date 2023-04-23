@@ -105,7 +105,7 @@ const exitFunc = () => {
 // VIEW ALL DEPARTMENTS
 // ##########################################################################################################
 const viewAllDepartments = () => {
-    db.query('SELECT * FROM department ORDER BY id', (err, results) => {
+    db.query('SELECT * FROM departments ORDER BY id', (err, results) => {
         convertToTable(results);
     });
 };
@@ -114,9 +114,9 @@ const viewAllDepartments = () => {
 // ##########################################################################################################
 const viewAllRoles = () => {
     db.query(`
-        SELECT roles.id, roles.title, department.department_name, roles.salary FROM roles 
-        INNER JOIN department 
-        ON roles.department_id = department.id
+        SELECT roles.id, roles.title, departments.department_name, roles.salary FROM roles 
+        INNER JOIN departments 
+        ON roles.department_id = departments.id
         ORDER BY roles.title ASC`,
 
         (err, results) => {
@@ -129,13 +129,13 @@ const viewAllRoles = () => {
 const viewAllEmployees = () => {
     db.query(`
                 SELECT
-                    employee.id, employee.first_name, employee.last_name, roles.title, department.department_name, roles.salary, 
+                    employees.id, employees.first_name, employees.last_name, roles.title, departments.department_name, roles.salary, 
                     CONCAT(manager.first_name, " ", manager.last_name) AS "Manager"
-                    FROM employee AS employee
-                    LEFT JOIN employee AS manager ON employee.manager_id = manager.id
-                    INNER JOIN roles ON employee.role_id = roles.id
-                    INNER JOIN department ON roles.department_id = department.id
-                    ORDER BY employee.first_name ASC`, (err, results) => {
+                    FROM employees AS employees
+                    LEFT JOIN employees AS manager ON employees.manager_id = manager.id
+                    INNER JOIN roles ON employees.role_id = roles.id
+                    INNER JOIN departments ON roles.department_id = departments.id
+                    ORDER BY employees.first_name ASC`, (err, results) => {
                     convertToTable(results);
                 }
                 );
@@ -154,7 +154,7 @@ const addNewDepartment = () => {
         }
     }
     ]).then((data => {
-        db.query(`INSERT INTO department (department_name) VALUES ("${data.department_name}")`, (err, results) => {
+        db.query(`INSERT INTO departments (department_name) VALUES ("${data.department_name}")`, (err, results) => {
             if(err) {
                 clearThenLogo();
                 console.error(`\n\n❌ Unable to add new department. Entered name cannot be empty or duplicated.\n`);
@@ -248,7 +248,7 @@ const addNewEmployee = async () => {
             choices: managers
         }
     ]).then((answers) => {
-        db.query(`INSERT INTO employee SET ?`, 
+        db.query(`INSERT INTO employees SET ?`, 
         {
             first_name: answers.first_name,
             last_name: answers.last_name,
@@ -286,7 +286,7 @@ const updateEmployeeRole = async() => {
                 choices: roles
             }
         ]).then((role) => {
-            db.query(`UPDATE employee SET role_id = ${role.newRole} WHERE id = ${selectedEmployee.employee}`, (err) => {
+            db.query(`UPDATE employees SET role_id = ${role.newRole} WHERE id = ${selectedEmployee.employee}`, (err) => {
                 if(err) {
                     console.error(err);
                 } else {
@@ -318,7 +318,7 @@ const updateEmployeeManager = async () => {
             choices: employees
         }
     ]).then((answers) => {
-        db.query(`UPDATE employee SET manager_id = ${answers.selectedManager} WHERE id = ${answers.selectedEmployee}`, (err) => {
+        db.query(`UPDATE employees SET manager_id = ${answers.selectedManager} WHERE id = ${answers.selectedEmployee}`, (err) => {
             if(err) {
                 console.error(err);
             } else {
@@ -343,7 +343,7 @@ const viewEmployeesByManager = async () => {
             choices: managers
         }
     ]).then((selectedManager) => {
-        db.query(`SELECT e.first_name, e.last_name, r.title FROM employee e 
+        db.query(`SELECT e.first_name, e.last_name, r.title FROM employees e 
                   INNER JOIN roles r ON e.role_id = r.id 
                   WHERE manager_id = ${selectedManager.manager}
                   ORDER BY e.first_name`, (err, results) => {
@@ -366,7 +366,7 @@ const viewEmployeesByDepartment = async () => {
         }
     ]).then((selectedDepartment) => {
         db.query(`SELECT e.first_name, e.last_name, r.title
-                  FROM employee e 
+                  FROM employees e 
                   INNER JOIN roles r ON e.role_id = r.id 
                   WHERE department_id = ${selectedDepartment.department}
                   ORDER BY e.first_name ASC`, (err, results) => {
@@ -389,7 +389,7 @@ const deleteDepartment = async () => {
             choices: departments
         }
     ]).then((selectedDepartment) => {
-        db.query(`DELETE FROM department WHERE id = ${selectedDepartment.department}`, (err) => {
+        db.query(`DELETE FROM departments WHERE id = ${selectedDepartment.department}`, (err) => {
             if(err) {
                 throw err;
             } else {
@@ -439,7 +439,7 @@ const deleteEmployee = async () => {
             choices: employees
         }
     ]).then((selectedEmployee) => {
-        db.query(`DELETE FROM employee WHERE id = ${selectedEmployee.employee}`, (err) => {
+        db.query(`DELETE FROM employees WHERE id = ${selectedEmployee.employee}`, (err) => {
             if(err) {
                 throw err;
             } else {
@@ -456,9 +456,9 @@ const deleteEmployee = async () => {
 const viewDepartmentBudget = () => {
     db.query(`SELECT d.department_name AS Department, 
                 SUM(r.salary) AS "Total Budget" 
-              FROM employee AS e 
+              FROM employees AS e 
               LEFT JOIN roles AS r ON e.role_id = r.id
-              LEFT JOIN department AS d ON r.department_id = d.id
+              LEFT JOIN departments AS d ON r.department_id = d.id
               GROUP BY d.id`,
 
                 (err, results) => {
