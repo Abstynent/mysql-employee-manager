@@ -5,6 +5,10 @@
   ## Description
   Employee Tracker is an CMS app to help control employees, roles and departments within business. View, add, update or delete new employees, roles or departments.
 
+https://user-images.githubusercontent.com/87772337/233872369-4199c630-c9de-4614-8d56-ee53161c2de1.mp4
+
+
+
   ## Table of Contents
   * [Installation](#installation)
   * [Usage](#usage)
