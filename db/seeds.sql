@@ -26,8 +26,8 @@ VALUES ("Edward", "Byrne", 1, null), -- 1, CFO
        ("Aditya", "Mcintosh", 2, 1), -- 2, Accountant
        ("Liberty", "Reyes", 3, 1), -- 3, Auditor
        ("Khail", "Mcbride", 3, 1), -- 4, Auditor
-       ("Oliwia", "Spencer", 4, 7), -- 5, Fleet Operations Specialist
-       ("Keaton", "Lopez", 5, 7), -- 6, Transport
+       ("Oliwia", "Spencer", 4, null), -- 5, Fleet Operations Specialist
+       ("Keaton", "Lopez", 5, null), -- 6, Transport
        ("Alan", "Brooks", 6, null), -- 7, Fleet Manager
        ("Brandon", "Stewart", 7, null), -- 8, Compliance Officer
        ("Kristina", "Duke", 8, 8), -- 9, Compliance Assistant
